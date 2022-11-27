@@ -1,10 +1,3 @@
-# Hoang M. Le
-# California Institute of Technology
-# hmle@caltech.edu
-# 
-# Simple testing of trained subgoal models
-# ===================================================================================================================
-
 import os
 
 os.environ['PYTHONHASHSEED'] = '0'
@@ -24,7 +17,7 @@ from tensorboard import TensorboardVisualizer
 from os import path
 import planner
 import math, random
-from hyperparameters_new import *
+from config.hyperparameters import *
 from evaluate_plan import *
 import pickle
 

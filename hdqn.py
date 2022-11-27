@@ -1,11 +1,6 @@
-# Hoang M. Le
-# California Institute of Technology
-# hmle@caltech.edu
-# ===================================================================================================================
 
-# from hyperparameters import *
-from device_config import device
-from hyperparameters_new import *
+from config.device_config import device
+from config.hyperparameters import *
 
 from keras.models import Sequential, Model, load_model, model_from_config
 from keras.layers import Dense, Conv2D, Flatten, Input, concatenate, Lambda

@@ -1,7 +1,3 @@
-# Hoang M. Le
-# California Institute of Technology
-# hmle@caltech.edu
-# ===================================================================================================================
 
 from keras.models import Sequential, Model, load_model, model_from_config
 from keras.layers import Dense, Conv2D, Flatten, Input, concatenate, Lambda
@@ -10,7 +6,7 @@ from keras import initializers
 import numpy as np
 import tensorflow as tf
 
-import device_config
+from config import device_config
 
 nb_Action = 8
 # goalSetSize = 3

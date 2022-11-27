@@ -1,13 +1,7 @@
-# Hoang M. Le
-# California Institute of Technology
-# hmle@caltech.edu
-# ===================================================================================================================
 
-# from hyperparameters import *
-from hyperparameters_new import *
-
-from replay_buffer import PrioritizedReplayBuffer
-from schedules import LinearSchedule
+from config.hyperparameters import *
+from utils.replay_buffer import PrioritizedReplayBuffer
+from utils.schedules import LinearSchedule
 from keras.models import Model, Sequential
 from keras.layers import Dense, Input, concatenate, Lambda, Conv2D, Flatten
 from keras import optimizers

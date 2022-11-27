@@ -2,14 +2,14 @@
 # ===================================================================================================================
 
 # from hyperparameters import *
-from hyperparameters_new import *
+from config.hyperparameters import *
 import numpy as np
 np.random.seed(SEED)
 import random
 random.seed(SEED)
 import time
 
-from segment_tree import SumSegmentTree, MinSegmentTree
+from utils.segment_tree import SumSegmentTree, MinSegmentTree
 
 class ReplayBuffer(object):
     def __init__(self, size):

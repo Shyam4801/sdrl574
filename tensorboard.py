@@ -1,8 +1,3 @@
-# Hoang M. Le
-# California Institute of Technology
-# hmle@caltech.edu
-# (thanks to script from Malmo Project - Microsoft Corporation)
-# ===================================================================================================================
 
 from __future__ import absolute_import
 

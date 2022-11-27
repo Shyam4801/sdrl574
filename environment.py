@@ -1,5 +1,5 @@
 
-from hyperparameters_new import *
+from config.hyperparameters import *
 import sys
 import os
 import logging
@@ -9,9 +9,6 @@ from PIL import Image, ImageDraw
 import gym
 import os
 import argparse
-# from ale_py.roms import Breakout
-
-# ale.loadROM(montezuma_revenge)
 
 logger = logging.getLogger(__name__)
 np.random.seed(SEED)

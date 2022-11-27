@@ -1,5 +1,6 @@
 /__pycache__
 /logs
 /summary_v1
-screenlog.0
-result.tmp
+/screenlog.0
+/result.tmp
+/cmds_hist.txt

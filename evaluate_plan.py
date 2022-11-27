@@ -5,9 +5,9 @@ from os import path
 import math, random
 import planner
 
+lppath = "lp/"
 
 def generateplan():
-    lppath = "lp/"
     clingopath = "clingo"
     # initial = lppath+"initial.lp"
     goal = lppath+"goal.lp"
@@ -27,7 +27,7 @@ def calculateplanquality(ro_table, stateaction):
 
 def generate_rovalue_from_table(env, ro_table_lp, ro_table):
     #    print "output qvalues"
-    qfile = open("q.lp", "w")
+    qfile = open(lppath+"q.lp", "w")
     for (state, action) in ro_table_lp:
         logical_state = stateRemapping(state)
         logical_action = actionRemapping(action)
@@ -39,7 +39,7 @@ def generate_rovalue_from_table(env, ro_table_lp, ro_table):
 
 def generate_goal_file(planquality):
     #    print "output new goal file"
-    goalfile = open("goal.lp", "w")
+    goalfile = open(lppath+"goal.lp", "w")
     goalfile.write("#program check(k).\n")
     #    goalfile.write(":- not at(key,k), query(k).\n")
     goalfile.write(":- query(k), cost(C,k), C <= " + str(planquality) + ".\n")
@@ -52,14 +52,14 @@ def str2bool(v):
 
 
 def cleanupconstraint():
-    open('constraint.lp', 'w').close()
+    open(lppath+'constraint.lp', 'w').close()
 
 
 def updateconstraint(state_ind, action_ind):
     state = stateRemappingWithTimeStamps(state_ind)
     action = actionRemappingWithTimeStamps(action_ind)
     constraint = ":-" + state + "," + action + ".\n"
-    f = open("constraint.lp", "a")
+    f = open(lppath+"constraint.lp", "a")
     f.write("#program step(k).\n")
     f.write(constraint)
     f.close()

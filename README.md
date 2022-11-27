@@ -12,6 +12,6 @@
     
 ## Run the Interface
 
-## Rferences
+## References
 - https://arxiv.org/pdf/1604.06057.pdf - Hierarchical Deep Reinforcement Learning: Integrating Temporal Abstraction and Intrinsic Motivation
 - https://arxiv.org/pdf/1804.08229v1.pdf - An Empirical Comparison of PDDL-based and ASP-based Task Planners

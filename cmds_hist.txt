@@ -1,0 +1,101 @@
+    1  cd 
+    2  ls
+    3  ls 
+    4  cd
+    5  ls
+    6  ls -a
+    7  cd ..
+    8  ls
+    9  cd mnt/d/ASU/CSE574/
+   10  ls
+   11  cd SDRL/symbolic_planning_and_rl/src/
+   12  ls
+   13  cd mntz_clingo/
+   14  sudo apt-get install python3.8
+   15  sudo apt-get install python==3.8
+   16  sudo apt-get install python3
+   17  python3 --version
+   18  pip list
+   19  apt install python-pip
+   20  apt install python3-pip
+   21  apt-get install python3-pip
+   22  sudo apt-get install python3-pip
+   23  sudo apt-get install python-pip
+   24  apt-get update
+   25  sudo apt-get install python3-pip
+   26  python3 environment_atari.py 
+   27  pip3 install numpy 
+   28  python3 environment_atari.py 
+   29  pip3 install tensorflow==1.15
+   30  pip3 install tensorflow==1.14
+   31  python3 environment_atari.py
+   32  sudo apt-get install python==3.8
+   33  sudo apt-get install python3.8
+   34  python3.8 environment_atari.py
+   35  pip3.8 install tensorflow==1.14 
+   36  python3.8 -m pip install tensorflow==1.14 
+   37  python3.8 -m pip install tensorflow==1.15 
+   38  python3.8 -m pip install tensorflow
+   39  sudo apt-get install python3-pip
+   40  python3.8 -m pip install --upgrade pip
+   41  python3.8 -m pip install tensorflow
+   42  python3.6 -m pip install tensorflow==1.14
+   43  python3.8 environment_atari.py
+   44  python3.8 -m pip install opencv-python
+   45  python3.8 environment_atari.py
+   46  python3.8 -m pip install apt_pkg
+   47  sudo apt remove python3-apt
+   48  sudo apt install python3-apt
+   49  python3.8 environment_atari.py
+   50  apt-get update && apt-get install libgl1
+   51  python3.8 environment_atari.py
+   52  python3.8 -m pip install pillow
+   53  python3.8 environment_atari.py
+   54  python3.8 -m pip install gym[all]
+   55  python3.8 environment_atari.py
+   56  python3.8 -m pip install gym
+   57  python3.8 environment_atari.py
+   58  sudo apt-get install python3.8-dev
+   59  python3.8 environment_atari.py
+   60  sudo apt-get install python3-dev
+   61  sudo apt-get install python3-devsudo apt install libpython3.8-dev 
+   62  sudo apt install libpython3.8-dev 
+   63  echo $PATH
+   64  python3.8 environment_atari.py
+   65  python3.8
+   66  python3.8 -m pip install gym[atari]
+   67  python3.8 -m pip install gym[all]
+   68  python3.8 environment_atari.py
+   69  export PYTHONWARNINGS=default::ImportWarning:ale_py.roms
+   70  python3.8 environment_atari.py
+   71  echo PYTHONWARNINGS
+   72  export PYTHONWARNINGS="default::ImportWarning:ale_py.roms"
+   73  echo PYTHONWARNINGS
+   74  export PYTHONWARNINGS:$PYTHONWARNINGS=default::ImportWarning:ale_py.roms
+   75  export PYTHONWARNINGS=$PYTHONWARNINGS:default::ImportWarning:ale_py.roms
+   76  echo PYTHONWARNINGS
+   77  export PYTHONWARNINGS=$PYTHONWARNINGS:default::ImportWarning:ale_py.roms
+   78  echo PYTHONWARNINGS
+   79  python3.8
+   80  ale-import-roms
+   81  ale-import-roms roms/
+   82  mkdir roms
+   83  ale-import-roms roms/
+   84  ale-import-roms --import-from-pkg roms/
+   85  ale-import-roms -h
+   86  ale-import-roms roms/
+   87  python3.8 environment_atari.py
+   88  python3.8 -m pip install --upgrade pip
+   89  python3.8 environment_atari.py
+   90  python3.8 -m pip install gym[accept-rom-license]
+   91  python3.8 environment_atari.py
+   92  python3.8 hybrid_asp_dqn_training_more_dqns_new.py 
+   93  cat /usr/local/lib/python3.8/dist-packages/tensorboard/main.py 
+   94  cat /usr/local/lib/python3.8/dist-packages/tensorboard/plugin_util.py 
+   95  cat /usr/local/lib/python3.8/dist-packages/tensorboard/notebook.py 
+   96  python3.8 hybrid_asp_dqn_training_more_dqns_new.py 
+   97  python3.8 -m pip install psutil
+   98  python3.8 hybrid_asp_dqn_training_more_dqns_new.py 
+   99  pip3 list > requirements.txt
+  100  python3.8 -m pip list > requirements.txt
+  101  history > cmds_hist.txt

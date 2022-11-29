@@ -50,7 +50,7 @@ class Net:
 
     def loadWeight(self, subgoal):
         # path = 'weight/'
-        self.controller.load_weights('trained_models_for_test/policy_subgoal_' + str(subgoal) + '.h5')
+        self.controller.load_weights('models/policy_subgoal_' + str(subgoal) + '.h5')
         """
         if subgoal <= 4:
             self.controller.load_weights('netSubgoal_' + str(subgoal) + '.h5')

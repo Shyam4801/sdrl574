@@ -16,7 +16,7 @@ np.random.seed(SEED)
 
 class ALEEnvironment:
     def __init__(self, rom_file, args):
-        self.gym_env = gym.make("ALE/MontezumaRevenge-v5")  #MontezumaRevenge-v0
+        self.gym_env = gym.make("ALE/MontezumaRevenge-v5",render_mode="rgb_array")  #MontezumaRevenge-v0
         self.ale = self.gym_env.ale
         """
         @Lin: states for DRL agent are stacked consecutive frames, e.g. in the shape of 4*64*64

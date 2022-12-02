@@ -10,7 +10,8 @@
 # Run
 - python train.py
     
-## Run the Interface
+## Models 
+- https://drive.google.com/drive/folders/1d5GDeR8BCUMiUad0HMvhsWrubb_1RgKM?usp=share_link
 
 ## References
 - https://arxiv.org/pdf/1604.06057.pdf - Hierarchical Deep Reinforcement Learning: Integrating Temporal Abstraction and Intrinsic Motivation

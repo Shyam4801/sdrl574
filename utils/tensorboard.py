@@ -5,7 +5,7 @@ import six
 import tensorflow as tf
 from tensorflow.core.framework.summary_pb2 import Summary
 
-from visualizer import BaseVisualizer
+from utils.visualizer import BaseVisualizer
 
 
 class TensorboardVisualizer(BaseVisualizer):

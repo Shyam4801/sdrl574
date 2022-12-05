@@ -5,3 +5,5 @@
 /result.tmp
 /cmds_hist.txt
 /models
+/tfevents_v1
+/test.py

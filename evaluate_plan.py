@@ -25,8 +25,7 @@ def calculateplanquality(ro_table, stateaction):
     return planquality
 
 
-def generate_rovalue_from_table(env, ro_table_lp, ro_table):
-    #    print "output qvalues"
+def generate_rovalue(env, ro_table_lp, ro_table):
     qfile = open(lppath+"q.lp", "w")
     for (state, action) in ro_table_lp:
         logical_state = stateRemapping(state)

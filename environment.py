@@ -9,29 +9,26 @@ from PIL import Image, ImageDraw
 import gym
 import os
 import argparse
-
+from constants import *
 logger = logging.getLogger(__name__)
 np.random.seed(SEED)
 
 
 class ALEEnvironment:
-    def __init__(self, rom_file, args):
-        self.gym_env = gym.make("ALE/MontezumaRevenge-v5",render_mode="rgb_array")  #MontezumaRevenge-v0
+    def __init__(self):
+        self.gym_env = gym.make("ALE/MontezumaRevenge-v5",render_mode=RENDER_MODE) 
         self.ale = self.gym_env.ale
         """
-        @Lin: states for DRL agent are stacked consecutive frames, e.g. in the shape of 4*64*64
+        States for DRL agent are stacked 4D tensors in the shape of 4*64*64
         """
         self.histLen = 4
 
-        self.ale.setInt('frame_skip', args.frame_skip)
+        self.ale.setInt('frame_skip', SKIP_FRAMES)
         self.ale.setFloat('repeat_action_probability', 0.0)
-        self.ale.setBool('color_averaging', args.color_averaging)
+        self.ale.setBool('color_averaging', COLOR_AVERAGING)
+        self.ale.setInt('random_seed', 0)  
 
-        # if args.random_seed:
-        #  self.ale.setInt('random_seed', args.random_seed)
-        self.ale.setInt('random_seed', 0)  # hoang addition to fix the random seed across all environment
-
-        if args.minimal_action_set:
+        if MINIMAL_ACTION_SET:
             self.actions = self.ale.getMinimalActionSet()
             logger.info("Using minimal action set with size %d" % len(self.actions))
         else:
@@ -39,36 +36,27 @@ class ALEEnvironment:
             logger.info("Using full action set with size %d" % len(self.actions))
         logger.debug("Actions: " + str(self.actions))
 
-        self.screen_width = args.screen_width
-        self.screen_height = args.screen_height
+        self.screen_width = SCREEN_WIDTH
+        self.screen_height = SCREEN_HEIGHT
 
         self.mode = "train"
         self.life_lost = False
         self.initSrcreen = self.getScreen()
         print("size of screen is:", self.initSrcreen.shape)
         im = Image.fromarray(self.initSrcreen)
-        im.save('initial_screen.jpeg')
 
-        """
-        @Lin: here they use hard-coded sub-goals
-        """
-        """
-        @Sid: need to find the goal location for both the agents
-        """
         
         self.goalSet = []
         # goal 0
-        self.goalSet.append([[69, 68], [73, 71]])  # Lower Right Ladder. This is the box for detecting first subgoal
-        # self.goalSet.append([[11, 58], [15, 66]]) # lower left ladder 3
-        # self.goalSet.append([[11, 68], [15, 71]])  # lower left ladder 3
+        self.goalSet.append([[69, 68], [73, 71]])  # Lower Right Ladder.
         # goal 2
-        self.goalSet.append([[7, 41], [11, 45]])  # Key. This will be second sub goal
+        self.goalSet.append([[7, 41], [11, 45]])  # Key. 
         # goal 3
-        self.goalSet.append([[11, 68], [15, 71]])  # lower left ladder 3
+        self.goalSet.append([[11, 68], [15, 71]])  # lower left ladder 
         # goal 4
-        self.goalSet.append([[69, 68], [73, 71]])  # Lower Right Ladder again, this will be the third subgoal
+        self.goalSet.append([[69, 68], [73, 71]])  # Lower Right Ladder again
         # goal 6
-        self.goalSet.append([[70, 20], [73, 35]])  # Right Door. This will be the 4th subgoal
+        self.goalSet.append([[70, 20], [73, 35]])  # Right Door
         self.goalCenterLoc = []
         
         
@@ -84,9 +72,6 @@ class ALEEnvironment:
         self.state_history = self.initialize_stacked_state_history()
 
     def initialize_stacked_state_history(self):
-        """
-        @Lin: 4 stacked frames as RL state
-        """
         state_history = np.concatenate((self.obtain_current_state(), self.obtain_current_state()), axis=2)
         state_history = np.concatenate((state_history, self.obtain_current_state()), axis=2)
         state_history = np.concatenate((state_history, self.obtain_current_state()), axis=2)
@@ -103,7 +88,7 @@ class ALEEnvironment:
         self.life_lost = False
         self.goal_is_reached = [0, 0, 0, 0, 0, 0, 0]
         for i in range(19):
-            self.act(0)  # wait for initialization
+            self.act(0)  
         self.state_history = self.initialize_stacked_state_history()
         self.agent_previous_X_coord = self.agent_original_location[0]
         self.agent_previous_Y_coord = self.agent_original_location[1]
@@ -112,15 +97,14 @@ class ALEEnvironment:
         self.life_lost = False
         self.goal_is_reached = [0, 0, 0, 0, 0, 0, 0]
         for i in range(19):
-            self.act(0)  # wait for initialization
+            self.act(0) 
         self.state_history = self.initialize_stacked_state_history()
         self.agent_previous_X_coord = self.agent_original_location[0]
         self.agent_previous_Y_coord = self.agent_original_location[1]
 
     def act(self, action):
         lives = self.ale.lives()
-        # print('----',len(self.gym_env.step(self.actions[action])))
-        observation, reward, done, truncated, info = self.gym_env.step(self.actions[action])  # done = terminated
+        observation, reward, done, truncated, info = self.gym_env.step(self.actions[action]) 
         self.life_lost = (not lives == self.ale.lives())
         currState = self.obtain_current_state()
         self.state_history = np.concatenate((self.state_history[:, :, 1:], currState), axis=2)
@@ -134,12 +118,10 @@ class ALEEnvironment:
     def getScreenRGB(self):
         screen = self.ale.getScreenRGB()
         resized = cv2.resize(screen, (self.screen_width, self.screen_height))
-        # resized = screen
+       
         return resized
 
     def agent_location(self, img):
-        #  img = self.getScreenRGB()
-
         man = [200, 72, 72]
         mask = np.zeros(np.shape(img))
         mask[:, :, 0] = man[0]
@@ -162,8 +144,6 @@ class ALEEnvironment:
         return (mean_x, mean_y)
 
     def devil_location(self, img):
-        #    img = self.getScreenRGB()
-        # man = [0, 16, 2]
         devilColor = [236, 236, 236]
         mask = np.zeros(np.shape(img))
         mask[:, :, 0] = devilColor[0]
@@ -224,11 +204,8 @@ class ALEEnvironment:
         self.life_lost = False
 
     def agent_reached_goal(self, goal):
-        # if goal in [0,2,4,6]: # those are original task where bounding boxes are used to detect the location of agents
-        subset = [0, 2, 3, 4,
-                  6]  # those are original task where bounding boxes are used to detect the location of agents
+        subset = [0, 2, 3, 4, 6] 
         if goal in subset:
-            # goal_index = goal/2
             goal_index = subset.index(goal)
             position_of_goal = self.goalSet[goal_index]
             screen_of_goal = self.initSrcreen
@@ -243,15 +220,7 @@ class ALEEnvironment:
                 self.goal_is_reached[goal] = 1
                 return True
         if goal == 1:
-            # detect if agent is to the left of the devil
-            #    return self.devil_on_left()
             return self.find_left_ladder()
-        ############## -- DML modified -- ###########
-        # if goal == 4:
-        #     # detect if agent is to the right of the devil
-        # #    return self.devil_on_right()
-        #     return self.find_right_ladder()
-        ################# -- end -- ###########
         if goal == 5:
             # detect if the agent is back to the original location
             return self.agent_on_original_location()
@@ -330,22 +299,3 @@ class ALEEnvironment:
             return False
         return True
 
-
-def str2bool(v):
-    return v.lower() in ("yes", "true", "t", "1")
-
-parser = argparse.ArgumentParser()
-parser.add_argument("--game", default="montezuma_revenge.bin")
-parser.add_argument("--display_screen", type=str2bool, default=False)
-parser.add_argument("--frame_skip", default=4)
-parser.add_argument("--color_averaging", default=True)
-parser.add_argument("--random_seed", default=0)
-parser.add_argument("--minimal_action_set", default=False)
-parser.add_argument("--screen_width", default=84)
-parser.add_argument("--screen_height", default=84)
-parser.add_argument("--load_weight", default=False)
-parser.add_argument("--use_sparse_reward", type=str2bool, default=True)
-args = parser.parse_args()
-
-env = ALEEnvironment(args.game, args)
-print("agent loc:",env.agent_location(env.getScreenRGB()))

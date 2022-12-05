@@ -10,7 +10,7 @@ from agent import Agent
 from hdqn import Hdqn
 from controller_net import Net
 from PIL import Image
-from tensorboard import TensorboardVisualizer
+from utils.tensorboard import TensorboardVisualizer
 from os import path
 import time
 import cv2

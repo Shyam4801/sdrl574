@@ -1,4 +1,3 @@
-
 from config.hyperparameters import *
 from utils.replay_buffer import PrioritizedReplayBuffer
 from utils.schedules import LinearSchedule
@@ -10,21 +9,20 @@ import gc
 from constants import *
 from loss import clipped_masked_error
 
-
 beta_schedule = LinearSchedule(prioritized_replay_beta_iters,
                                initial_p=prioritized_replay_beta0,
                                final_p=1.0)
 
-class Agent:
-
-    def __init__(self, net, actionSet, goalSet, defaultNSample, defaultRandomPlaySteps, controllerMemCap, explorationSteps, trainFreq, hard_update,
+class DDQNAgent:
+    def __init__(self, actions_size, state_size, defaultNSample, defaultRandomPlaySteps, controllerMemCap, explorationSteps, trainFreq, hard_update,
                  controllerEpsilon=defaultControllerEpsilon):
-        self.actionSet = actionSet
+        
+        # Initialize atributes
+        self._state_size = state_size
+        self._action_size = actions_size
         self.controllerEpsilon = controllerEpsilon
-        self.goalSet = goalSet
         self.nSamples = defaultNSample 
         self.gamma = defaultGamma
-        self.net = net
         self.memory = PrioritizedReplayBuffer(controllerMemCap, alpha=prioritized_replay_alpha)
         self.enable_double_dqn = True
         self.exploration = LinearSchedule(schedule_timesteps = explorationSteps, initial_p = 1.0, final_p = 0.02)
@@ -33,17 +31,62 @@ class Agent:
         self.randomPlay = True
         self.learning_done = False
         self.hard_update = hard_update
+        self.enable_dueling_network = False
 
-    # Set epsilon probability 
-    def setControllerEpsilon(self, epsilonArr):
-        self.controllerEpsilon = epsilonArr
+        rmsProp = optimizers.RMSprop(lr=LEARNING_RATE, rho=0.95, epsilon=1e-08, decay=0.0)
+        # Build networks
+        self.primary_network = self._build_network()
+        self.target_network = self._build_network()
+        self.enable_dueling(self.enable_dueling_network,self.primary_network,self.target_network)
+        
+        self.primary_network.compile(loss='mse', optimizer=rmsProp)           
+        self.target_network.compile(loss='mse', optimizer=rmsProp)
+        
+   
+    def _build_network(self):
+        network = Sequential()
+        network.add(Conv2D(32, (8, 8), strides=4, activation='relu', padding='valid', input_shape=(84, 84, 4)))
+        network.add(Conv2D(64, (4, 4), strides=2, activation='relu', padding='valid'))
+        network.add(Conv2D(64, (4, 4), strides=2, activation='relu', padding='valid'))
+        network.add(Flatten())
+        network.add(Dense(HIDDEN_NODES, activation='relu',
+                                kernel_initializer=initializers.random_normal(stddev=0.01, seed=SEED)))
+        network.add(Dense(len(self._action_size), activation='linear',
+                                kernel_initializer=initializers.random_normal(stddev=0.01, seed=SEED)))
+        
+        return network
+    
+    def enable_dueling(self, enable_dueling_network, net1, net2):
+        if not self.enable_dueling_network:
+            self.controllerNet = net1
+            self.targetControllerNet = net2
+
+            self.controllerNet.reset_states()
+            self.targetControllerNet.set_weights(self.controllerNet.get_weights())
+            self.primary_network = self.controllerNet
+            self.target_network = self.targetControllerNet
+        else:
+            layer = net1.layers[-2]
+            nb_output = net1.output._keras_shape[-1]
+            y = Dense(nb_output + 1, activation='linear', kernel_initializer=initializers.random_normal(stddev=0.01))(
+                layer.output)
+            outputlayer = Lambda(lambda a: K.expand_dims(a[:, 0], -1) + a[:, 1:] - K.mean(a[:, 1:], keepdims=True),
+                                 output_shape=(nb_output,))(y)
+
+            self.controllerNet = Model(inputs=net1.input, outputs=outputlayer)
+            self.primary_network = self.controllerNet
+            self.controllerNet.compile(optimizer=rmsProp, loss='mse')
+            self.targetControllerNet = clone_model(self.controllerNet)
+            self.target_network = self.targetControllerNet
+            self.targetControllerNet.compile(optimizer=rmsProp, loss='mse')
+
 
     # Select a random action or predict next action
-    def selectMove(self, state):
+    def act(self, state):
         if not self.learning_done:
             if self.controllerEpsilon < random.random():
-                return np.argmax(self.net.controllerNet.predict([np.reshape(state, (1, 84, 84, 4))], verbose=0))
-            return random.choice(self.actionSet) # choose a random action based on the current state
+                return np.argmax(self.primary_network.predict([np.reshape(state, (1, 84, 84, 4))], verbose=0))
+            return random.choice(self._action_size) # choose a random action based on the current state
         else:
             return np.argmax(self.simple_net.predict([np.reshape(state, (1, 84, 84, 4))], verbose=0))
 
@@ -65,11 +108,11 @@ class Agent:
         self.memory.add(experience.state, experience.action, experience.reward, experience.next_state, experience.done)
 
     def compile(self):
-        y_pred = self.net.controllerNet.output
+        y_pred = self.primary_network.output
         y_true = Input(name='y_true', shape=(nb_Action,))
         mask = Input(name='mask', shape=(nb_Action,))
         loss_out = Lambda(clipped_masked_error, output_shape=(1,), name='loss')([y_pred, y_true, mask])
-        ins = [self.net.controllerNet.input] if type(self.net.controllerNet.input) is not list else self.net.controllerNet.input
+        ins = [self.primary_network.input] if type(self.primary_network.input) is not list else self.primary_network.input
         trainable_model = Model(inputs=ins + [y_true, mask], outputs=[loss_out, y_pred])
         assert len(trainable_model.output_names) == 2
         losses = [
@@ -88,19 +131,19 @@ class Agent:
         stateVector = np.asarray(stateVector)
         nextStateVector = np.asarray(nextStateVector)
         
-        q_values = self.net.controllerNet.predict(stateVector)
+        q_values = self.primary_network.predict(stateVector)
         assert q_values.shape == (self.nSamples, nb_Action)
         # Double DQN to ensure that the values are not overestimated
         if self.enable_double_dqn:
             actions = np.argmax(q_values, axis = 1)
             assert actions.shape == (self.nSamples,)
 
-            target_q_values = self.net.targetControllerNet.predict(nextStateVector)
+            target_q_values = self.target_network.predict(nextStateVector)
             assert target_q_values.shape == (self.nSamples, nb_Action)
             q_batch = target_q_values[range(self.nSamples), actions]        # using an estimate of the q values instead of max 
             assert q_batch.shape == (self.nSamples,)
         else:
-            target_q_values = self.net.targetControllerNet.predict(nextStateVector)
+            target_q_values = self.target_network.predict(nextStateVector)
             q_batch = np.max(target_q_values, axis=1)             # using max q to update the best Q
             assert q_batch.shape == (self.nSamples,)
 
@@ -130,14 +173,14 @@ class Agent:
         targets = np.array(targets).astype('float32')
         masks = np.array(masks).astype('float32')
 
-        ins = [stateVector] if type(self.net.controllerNet.input) is not list else stateVector
+        ins = [stateVector] if type(self.primary_network.input) is not list else stateVector
         if stepCount >= self.defaultRandomPlaySteps:
             loss = self.trainable_model.train_on_batch(ins + [targets, masks], [dummy_targets, targets], sample_weight = [np.array(importanceVector), np.ones(self.nSamples)])
         else:
             loss = [0.0,0.0,0.0]
         
         if stepCount > self.defaultRandomPlaySteps and stepCount % self.hard_update == 0:
-            self.net.targetControllerNet.set_weights(self.net.controllerNet.get_weights())
+            self.target_network.set_weights(self.primary_network.get_weights())
         return loss[1], np.mean(q_values), np.mean(np.abs(td_errors))
         
 
@@ -162,15 +205,8 @@ class Agent:
         gc.collect()
 
         rmsProp = optimizers.RMSprop(lr=LEARNING_RATE, rho=0.95, epsilon=1e-08, decay=0.0)
+        self.simple_net = self._build_network()
+        self.simple_net.compile(loss = 'mse', optimizer = rmsProp)
+        self.simple_net.load_weights(recordFolder+'/policy_subgoal_' + str(goal) + '.h5')
+        self.simple_net.reset_states()
 
-        with tf.device('/gpu:'+str(gpu)):
-            self.simple_net = Sequential()
-            self.simple_net.add(Conv2D(32, (8,8), strides = 4, activation = 'relu', padding = 'valid', input_shape = (84,84,4)))
-            self.simple_net.add(Conv2D(64, (4,4), strides = 2, activation = 'relu', padding = 'valid'))
-            self.simple_net.add(Conv2D(64, (3,3), strides = 1, activation = 'relu', padding = 'valid'))
-            self.simple_net.add(Flatten())
-            self.simple_net.add(Dense(HIDDEN_NODES, activation = 'relu', kernel_initializer = initializers.random_normal(stddev=0.01, seed = SEED)))
-            self.simple_net.add(Dense(nb_Action, activation = 'linear', kernel_initializer = initializers.random_normal(stddev=0.01, seed = SEED)))
-            self.simple_net.compile(loss = 'mse', optimizer = rmsProp)
-            self.simple_net.load_weights(recordFolder+'/policy_subgoal_' + str(goal) + '.h5')
-            self.simple_net.reset_states()

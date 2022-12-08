@@ -9,8 +9,7 @@ import numpy as np
 import tensorflow as tf
 from collections import namedtuple, deque
 from environment import ALEEnvironment
-from agent import Agent
-from hdqn import Hdqn
+from agents import DDQNAgent
 from PIL import Image
 from utils.tensorboard import TensorboardVisualizer
 from os import path
@@ -46,22 +45,17 @@ def main():
     env = ALEEnvironment()
 
     # Initialize network and agents
-    hdqn_dict = {}
     agent_dict = {}
-    for i in range(7):
-        hdqn_dict[i] = Hdqn()
-    
-    num_hdqns = len(hdqn_dict) 
 
-    agent_dict[0] = Agent(hdqn_dict[0], range(nb_Action), range(Num_subgoal), defaultNSample=BATCH, defaultRandomPlaySteps=1000,
+    agent_dict[0] = DDQNAgent(range(nb_Action), range(Num_subgoal), defaultNSample=BATCH, defaultRandomPlaySteps=1000,
                   controllerMemCap=EXP_MEMORY, explorationSteps=50000, trainFreq=TRAIN_FREQ, hard_update=1000)
     print(agent_dict[0])
     for i in range(1,7):
-        agent_dict[i] = Agent(hdqn_dict[i], range(nb_Action), range(Num_subgoal), defaultNSample=BATCH, defaultRandomPlaySteps=20000,
+        agent_dict[i] = DDQNAgent(range(nb_Action), range(Num_subgoal), defaultNSample=BATCH, defaultRandomPlaySteps=20000,
                    controllerMemCap=EXP_MEMORY, explorationSteps=200000, trainFreq=TRAIN_FREQ,
                    hard_update=HARD_UPDATE_FREQUENCY)
     
-    for i in range(num_hdqns):
+    for i in range(Num_subgoal):
         agent_dict[i].compile()
         if i not in goal_to_train:
             agent_dict[i].randomPlay = False
@@ -158,7 +152,7 @@ def main():
                 while not env.is_game_end() and not env.agent_reached_goal(goal) and episodeSteps <= maxStepsPerEpisode:
 
                     state = env.stack_states_together() # 4D tensor
-                    action = agent_dict[goal].selectMove(state)
+                    action = agent_dict[goal].act(state)
                     externalRewards = env.act(actionMap[action])
                     episodeSteps += 1
                     nextState = env.stack_states_together()

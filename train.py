@@ -11,7 +11,6 @@ from collections import namedtuple, deque
 from environment import ALEEnvironment
 from agent import Agent
 from hdqn import Hdqn
-from controller_net import Net
 from PIL import Image
 from utils.tensorboard import TensorboardVisualizer
 from os import path
